@@ -20,14 +20,21 @@ var sh = fxrandRange(10, 300, 1);
 var sw = fxrandRange(10, 300, 1);
 var conscol = 100;
 var indexk = 0;
+var baseCount1 = 1000;
+var baseCount2 = 1000;
+var initialArea;
+var baseMagv;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   cols = floor(windowWidth / scl);
   rows = floor(windowHeight / scl);
+  initialArea = windowWidth * windowHeight;
+  baseMagv = magv;
   fr = createP("");
   flowfield = new Array(cols * rows);
-  for (i = 0; i < 1000; i++) {
+  particles = [];
+  for (i = 0; i < baseCount1; i++) {
     particles[i] = new Particle(
       cr - i / conscol,
       cb - i / conscol,
@@ -37,7 +44,8 @@ function setup() {
       0.1
     );
   }
-  for (i = 0; i < 1000; i++) {
+  particles2 = [];
+  for (i = 0; i < baseCount2; i++) {
     particles2[i] = new Particle2(
       fr,
       fb,
@@ -47,7 +55,7 @@ function setup() {
       0.1
     );
   }
-  background(fxrandRange(0, 255, 1));
+  background(255);
 }
 
 function draw() {
@@ -116,39 +124,41 @@ function windowResized() {
   //fr = createP("");
   flowfield = new Array(cols * rows);
 
-  for (i = 0; i < 1000; i++) {
-    //particles[i] = new Particle(3, 0 + i * 20, 0);
+  var newArea = windowWidth * windowHeight;
+  var factor = newArea / initialArea;
+  if (factor < 1) factor = 1;
+  var speedScale = Math.sqrt(factor);
+  magv = baseMagv * speedScale;
+
+  var count1 = Math.min(Math.floor(baseCount1 * factor), 4000);
+  var count2 = Math.min(Math.floor(baseCount2 * factor), 4000);
+
+  particles = [];
+  for (i = 0; i < count1; i++) {
     particles[i] = new Particle(
-      cr,
-      cg,
-      cb,
+      cr - i / conscol,
+      cb - i / conscol,
+      cg - i / conscol,
       fxrand() * windowWidth,
       fxrand() * windowHeight
     );
+    particles[i].maxspeed = 4 * speedScale;
   }
-  push();
-  noStroke();
   background(255);
-  rectMode(RADIUS);
-  fill(255);
-  //fill(alpha(50));
-  rect(
-    windowWidth / 2,
-    windowHeight / 2,
-    windowWidth / 2 - 30,
-    windowHeight / 2 - 30
-  );
-
-  rectMode(RADIUS);
-  fill(255, 1 * sin(millis() * 1000));
-  noStroke();
-  rect(
-    windowWidth / 2,
-    windowHeight / 2,
-    windowWidth / 2 - 30,
-    windowHeight / 2 - 30
-  );
-  pop();
+  particles2 = [];
+  for (i = 0; i < count2; i++) {
+    particles2[i] = new Particle2(
+      fr,
+      fb,
+      fg,
+      fxrand() * windowWidth,
+      fxrand() * windowHeight,
+      0.1
+    );
+    particles2[i].maxspeed = 1 * speedScale;
+  }
+  indexk = 0;
+  loop();
 }
 
 function fxrandRange(min, max, step) {
@@ -163,4 +173,44 @@ window.$fxhashFeatures = {
   "Blue Value": cb,
   "Flow Increase": inc,
   "Cell Scale": scl,
-};
+ };
+
+function mousePressed() {
+  indexk = 0;
+  background(255);
+  cols = floor(windowWidth / scl);
+  rows = floor(windowHeight / scl);
+  flowfield = new Array(cols * rows);
+  var newArea = windowWidth * windowHeight;
+  var factor = newArea / initialArea;
+  if (factor < 1) factor = 1;
+  var speedScale = Math.sqrt(factor);
+  magv = baseMagv * speedScale;
+  var count1 = Math.min(Math.floor(baseCount1 * factor), 4000);
+  var count2 = Math.min(Math.floor(baseCount2 * factor), 4000);
+  particles = [];
+  for (i = 0; i < count1; i++) {
+    particles[i] = new Particle(
+      cr - i / conscol,
+      cb - i / conscol,
+      cg - i / conscol,
+      (fxrand() * windowWidth) / 2,
+      (fxrand() * windowHeight) / 2,
+      0.1
+    );
+    particles[i].maxspeed = 4 * speedScale;
+  }
+  particles2 = [];
+  for (i = 0; i < count2; i++) {
+    particles2[i] = new Particle2(
+      fr,
+      fb,
+      fg,
+      (fxrand() * windowWidth) / 2,
+      (fxrand() * windowHeight) / 2,
+      0.1
+    );
+    particles2[i].maxspeed = 1 * speedScale;
+  }
+  loop();
+}
